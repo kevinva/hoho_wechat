@@ -5,6 +5,7 @@ import '../../pages/const.dart';
 import 'package:http/http.dart' as http;
 
 import '../../model/chat.dart';
+import 'search_cell.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({Key? key}) : super(key: key);
@@ -84,7 +85,6 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     var response = await http.get(Uri.parse('http://rap2api.taobao.org/app/mock/data/2254192'));
     if (response.statusCode == 200) {
       final responseMap = json.decode(response.body);
-      print(responseMap);
       List<Chat> chatList = responseMap['chatlist'].map<Chat>(
           (item) {
             return Chat.fromMap(item);
@@ -93,6 +93,27 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
       return chatList;
     } else {
       throw Exception('statusCode:${response.statusCode}');
+    }
+  }
+
+  Widget _listViewItemBuilder(BuildContext context, int index) {
+    if (index == 0) {
+      return SearchCell(datas: _chatList,);
+    } else {
+      return ListTile(
+        title: Text(_chatList[index - 1].name),
+        subtitle: Container(
+          height: 20,
+          width: 20,
+          child: Text(
+            _chatList[index - 1].message,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        leading: CircleAvatar(
+          backgroundImage: NetworkImage(_chatList[index - 1].imageUrl),
+        ),
+      );
     }
   }
 
@@ -139,23 +160,8 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                 child: CircularProgressIndicator(),
               )
             : ListView.builder(
-                itemCount:_chatList.length,
-                itemBuilder: (BuildContext ctx, int index) {
-                  return ListTile(
-                    title: Text(_chatList[index].name),
-                    subtitle: Container(
-                      height: 20,
-                      width: 20,
-                      child: Text(
-                        _chatList[index].message,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(_chatList[index].imageUrl),
-                    ),
-                  );
-                }
+                itemCount:_chatList.length + 1,
+                itemBuilder: _listViewItemBuilder,
               ),
       ),
     );
